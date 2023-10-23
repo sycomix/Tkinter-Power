@@ -38,9 +38,8 @@ except ImportError:
 ########### Mining Program ########### (WORK IN PROGRESS) 
 sock = None
 
-def timer() :
-    tcx = datetime.now().time()
-    return tcx
+def timer():
+    return datetime.now().time()
     
 def handler(signal_received , frame) :
     MIZ.fShutdown = True
@@ -56,10 +55,10 @@ def get_current_block_height() :
     r = requests.get('https://blockchain.info/latestblock')
     return int(r.json()['height'])
 
-def check_for_shutdown(t) :
-    n = t.n
-    if MIZ.fShutdown :
-        if n != -1 :
+def check_for_shutdown(t):
+    if MIZ.fShutdown:
+        n = t.n
+        if n != -1:
             MIZ.listfThreadRunning[n] = False
             t.exit = True
 
@@ -70,12 +69,11 @@ class ExitedThread(threading.Thread) :
         self.arg = arg
         self.n = n
 
-    def run(self) :
+    def run(self):
         self.thread_handler(self.arg , self.n)
-        pass
 
-    def thread_handler(self , arg , n) :
-        while True :
+    def thread_handler(self , arg , n):
+        while True:
             check_for_shutdown(self)
             if self.exit :
                 break
@@ -90,7 +88,6 @@ class ExitedThread(threading.Thread) :
             MIZ.listfThreadRunning[n] = False
 
             time.sleep(2)
-            pass
 
     def thread_handler2(self , arg) :
         raise NotImplementedError("must impl this func")
@@ -98,12 +95,11 @@ class ExitedThread(threading.Thread) :
     def check_self_shutdown(self) :
         check_for_shutdown(self)
 
-    def try_exit(self) :
+    def try_exit(self):
         self.exit = True
         MIZ.listfThreadRunning[self.n] = False
-        pass
 
-def bitcoin_miner(t , restarted = False) :
+def bitcoin_miner(t , restarted = False):
     if restarted :
         logg('\n[*] Bitcoin Miner restarted')
         print('[' , timer() , '] [*] Bitcoin Miner Restarted')
@@ -120,21 +116,27 @@ def bitcoin_miner(t , restarted = False) :
     work_on = get_current_block_height()
     MIZ.nHeightDiff[work_on + 1] = 0
     _diff = int("00000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" , 16)
-    logg('[*] Working to solve block with height {}'.format(work_on + 1))
-    print('[' , timer() , '] [*] Working to solve block with height {}'.format(work_on + 1))
+    logg(f'[*] Working to solve block with height {work_on + 1}')
+    print('[', timer(), f'] [*] Working to solve block with height {work_on + 1}')
     #scantext3 = f'[  {timer()}  ]  [*] Working to solve block with height {work_on + 1}'
     #logg(scantext3)
     #self.mine_label3.config(text = scantext3)
     #self.mine_label3.update()
-    while True :
+    while True:
         t.check_self_shutdown()
         if t.exit :
             break
-        if MIZ.prevhash != MIZ.updatedPrevHash :
-            logg('[*] New block {} detected on network '.format(MIZ.prevhash))
-            print('[' , timer() , '] [*] New block {} detected on network '.format(MIZ.prevhash))
-            logg('[*] Best difficulty will trying to solve block {} was {}'.format(work_on + 1 , MIZ.nHeightDiff[work_on + 1]))
-            print('[' , timer() , '] [*] Best difficulty will trying to solve block  {} was {}'.format(work_on + 1 , MIZ.nHeightDiff[work_on + 1]))
+        if MIZ.prevhash != MIZ.updatedPrevHash:
+            logg(f'[*] New block {MIZ.prevhash} detected on network ')
+            print('[', timer(), f'] [*] New block {MIZ.prevhash} detected on network ')
+            logg(
+                f'[*] Best difficulty will trying to solve block {work_on + 1} was {MIZ.nHeightDiff[work_on + 1]}'
+            )
+            print(
+                '[',
+                timer(),
+                f'] [*] Best difficulty will trying to solve block  {work_on + 1} was {MIZ.nHeightDiff[work_on + 1]}',
+            )
             MIZ.updatedPrevHash = MIZ.prevhash
             bitcoin_miner(t , restarted = True)
             print('[' , timer() , '] Bitcoin Miner Restart Now...')
@@ -146,35 +148,33 @@ def bitcoin_miner(t , restarted = False) :
         hash = hashlib.sha256(hashlib.sha256(binascii.unhexlify(blockheader)).digest()).digest()
         hash = binascii.hexlify(hash).decode()
 
-        if hash.startswith('0000000') :
-            logg('[*] New hash: {} for block {}'.format(hash , work_on + 1))
-            print('[' , timer() , '] [*] New hash:  {} for block {}'.format(hash , work_on + 1))
-            print('[' , timer() , '] Hash:' , str(hash))
+        if hash.startswith('0000000'):
+            logg(f'[*] New hash: {hash} for block {work_on + 1}')
+            print('[', timer(), f'] [*] New hash:  {hash} for block {work_on + 1}')
+            print('[', timer(), '] Hash:', hash)
         this_hash = int(hash , 16)
         print(this_hash, end='\r')
         difficulty = _diff / this_hash
-        if MIZ.nHeightDiff[work_on + 1] < difficulty :
-            MIZ.nHeightDiff[work_on + 1] = difficulty
-
-        if hash < target :
-            logg('[*] Block {} solved.'.format(work_on + 1))
-            print('[' , timer() , '][*] Block {} solved.'.format(work_on + 1))
-            logg('[*] Block hash: {}'.format(hash))
-            print('[' , timer() , '][*] Block hash: {}'.format(hash))
-            logg('[*] Blockheader: {}'.format(blockheader))
-            print('[*] Blockheader: {}'.format(blockheader))
+        MIZ.nHeightDiff[work_on + 1] = max(MIZ.nHeightDiff[work_on + 1], difficulty)
+        if hash < target:
+            logg(f'[*] Block {work_on + 1} solved.')
+            print('[', timer(), f'][*] Block {work_on + 1} solved.')
+            logg(f'[*] Block hash: {hash}')
+            print('[', timer(), f'][*] Block hash: {hash}')
+            logg(f'[*] Blockheader: {blockheader}')
+            print(f'[*] Blockheader: {blockheader}')
             payload = bytes('{"params": ["' + address + '", "' + MIZ.job_id + '", "' + MIZ.extranonce2 \
                             + '", "' + MIZ.ntime + '", "' + nonce + '"], "id": 1, "method": "mining.submit"}\n' ,
                             'utf-8')
-            logg('[*] Payload: {}'.format(payload))
-            print('[' , timer() , '][*] Payload: {}'.format(payload))
+            logg(f'[*] Payload: {payload}')
+            print('[', timer(), f'][*] Payload: {payload}')
             sock.sendall(payload)
             ret = sock.recv(1024)
-            logg('[*] Pool response: {}'.format(ret))
-            print('[' , timer() , '][*] Pool Response: {}'.format(ret))
+            logg(f'[*] Pool response: {ret}')
+            print('[', timer(), f'][*] Pool Response: {ret}')
             return True
 
-def block_listener(t) :
+def block_listener(t):
     sock = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
     sock.connect(('solo.ckpool.org' , 3333))
     sock.sendall(b'{"id": 1, "method": "mining.subscribe", "params": []}\n')
@@ -183,19 +183,19 @@ def block_listener(t) :
     MIZ.sub_details , MIZ.extranonce1 , MIZ.extranonce2_size = response['result']
     sock.sendall(b'{"params": ["' + address.encode() + b'", "password"], "id": 2, "method": "mining.authorize"}\n')
     response = b''
-    while response.count(b'\n') < 4 and not (b'mining.notify' in response) : response += sock.recv(1024)
+    while response.count(b'\n') < 4 and b'mining.notify' not in response: response += sock.recv(1024)
 
     responses = [json.loads(res) for res in response.decode().split('\n') if
                  len(res.strip()) > 0 and 'mining.notify' in res]
     MIZ.job_id , MIZ.prevhash , MIZ.coinb1 , MIZ.coinb2 , MIZ.merkle_branch , MIZ.version , MIZ.nbits , MIZ.ntime , MIZ.clean_jobs = \
         responses[0]['params']
     MIZ.updatedPrevHash = MIZ.prevhash
-    while True :
+    while True:
         t.check_self_shutdown()
         if t.exit :
             break
         response = b''
-        while response.count(b'\n') < 4 and not (b'mining.notify' in response) : response += sock.recv(1024)
+        while response.count(b'\n') < 4 and b'mining.notify' not in response: response += sock.recv(1024)
         responses = [json.loads(res) for res in response.decode().split('\n') if
                      len(res.strip()) > 0 and 'mining.notify' in res]
 
@@ -252,10 +252,9 @@ def RandomInteger(minN, maxN):
 
 ########### Database Load and Files ###########
 mylist = []
- 
+
 with open('files/words.txt', newline='', encoding='utf-8') as f:
-    for line in f:
-        mylist.append(line.strip())
+    mylist.extend(line.strip() for line in f)
 startdec = 1
 stopdec = 115792089237316195423570985008687907852837564279074904382605163141518161494336
 totaladd = total = found =0

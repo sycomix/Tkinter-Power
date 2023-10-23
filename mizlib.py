@@ -98,8 +98,7 @@ with open('eth.bf', "rb") as fp:
     
 def countadd():
     addr_count = len(bloom_filterbtc) + len(bloom_filtereth)
-    addr_count_print = (f'Total BTC & ETH Addresses Loaded and Checking : {addr_count}')
-    return addr_count_print
+    return f'Total BTC & ETH Addresses Loaded and Checking : {addr_count}'
 
 lines = '=' * 70
 # For Menu
@@ -121,40 +120,35 @@ def hunter16x16():
 def price():
     url = 'https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=GBP,USD,EUR'
     page = requests.get(url)
-    data = page.json()
-    return data
+    return page.json()
 # Balance Checking 
 def get_balance(caddr):
-    response = requests.get("https://blockstream.info/api/address/" + str(caddr))
+    response = requests.get(f"https://blockstream.info/api/address/{str(caddr)}")
     balance = float(response.json()['chain_stats']['funded_txo_sum'])
     totalSent = float(response.json()['chain_stats']['spent_txo_sum'])
     txs = response.json()['chain_stats']['funded_txo_count']
-    source_code = f'TotalReceived = [{balance}] : TotalSent =  [{totalSent}] : Transactions = [{txs}]'
-    return source_code
+    return f'TotalReceived = [{balance}] : TotalSent =  [{totalSent}] : Transactions = [{txs}]'
     
 def get_balance1(uaddr):
-    response = requests.get("https://blockstream.info/api/address/" + str(uaddr))
+    response = requests.get(f"https://blockstream.info/api/address/{str(uaddr)}")
     balance = float(response.json()['chain_stats']['funded_txo_sum'])
     totalSent = float(response.json()['chain_stats']['spent_txo_sum'])
     txs = response.json()['chain_stats']['funded_txo_count']
-    source_code1 = f'TotalReceived = [{balance}] : TotalSent =  [{totalSent}] : Transactions = [{txs}]'
-    return source_code1
+    return f'TotalReceived = [{balance}] : TotalSent =  [{totalSent}] : Transactions = [{txs}]'
 
 def get_balance2(p2sh):
-    response = requests.get("https://blockstream.info/api/address/" + str(p2sh))
+    response = requests.get(f"https://blockstream.info/api/address/{str(p2sh)}")
     balance = float(response.json()['chain_stats']['funded_txo_sum'])
     totalSent = float(response.json()['chain_stats']['spent_txo_sum'])
     txs = response.json()['chain_stats']['funded_txo_count']
-    source_code2 = f'TotalReceived = [{balance}] : TotalSent =  [{totalSent}] : Transactions = [{txs}]'
-    return source_code2
+    return f'TotalReceived = [{balance}] : TotalSent =  [{totalSent}] : Transactions = [{txs}]'
 
 def get_balance3(bech32):
-    response = requests.get("https://blockstream.info/api/address/" + str(bech32))
+    response = requests.get(f"https://blockstream.info/api/address/{str(bech32)}")
     balance = float(response.json()['chain_stats']['funded_txo_sum'])
     totalSent = float(response.json()['chain_stats']['spent_txo_sum'])
     txs = response.json()['chain_stats']['funded_txo_count']
-    source_code3 = f'TotalReceived = [{balance}] : TotalSent =  [{totalSent}] : Transactions = [{txs}]'
-    return source_code3
+    return f'TotalReceived = [{balance}] : TotalSent =  [{totalSent}] : Transactions = [{txs}]'
 # FOR Conversion TAB 
 def bin2dec(value):
     return int(value, 2)
@@ -163,9 +157,7 @@ def bin2hex(value):
     return hex(int(value, 2))
     
 def bin2bit(value):
-    length = len(bin(int(value, 2)))
-    length -=2
-    return length
+    return len(bin(int(value, 2))) - 2
     
 def bit2dec(value):
     return 2**(int(value))
@@ -185,9 +177,7 @@ def dec2hex(value):
     return hex(int(value))
     
 def dec2bit(value):
-    length = len(bin(int(value)))
-    length -=2
-    return length
+    return len(bin(int(value))) - 2
 
 def hex2bin(value):
     return bin(int(value, 16))
@@ -196,18 +186,15 @@ def hex2dec(value):
     return int(value, 16)
     
 def hex2bit(value):
-    length = len(bin(int(value, 16)))
-    length -=2
-    return length
+    return len(bin(int(value, 16))) - 2
 
 def addr2int(value):
     source_code = get_balance(value)
-    dataadd= (f'''==================================================================================
+    return f'''==================================================================================
 Bitcoin Address : {value} : 
 {source_code}
 ==================================================================================
-''')
-    return dataadd
+'''
 
 def int2addr(value):
     dec=int(value)
@@ -220,7 +207,7 @@ def int2addr(value):
     source_code1 = get_balance1(uaddr)
     source_code2 = get_balance2(p2sh)
     source_code3 = get_balance3(bech32)
-    dataadd= (f'''==================================================================================
+    return f'''==================================================================================
 Bitcoin Address : {caddr} : 
 {source_code}
 Bitcoin Address : {uaddr} : 
@@ -230,22 +217,19 @@ Bitcoin Address : {p2sh} :
 Bitcoin Address : {bech32} : 
 {source_code3}
 ==================================================================================
-''')
-    return dataadd
+'''
 # BrainWallet
 class BrainWallet:
     @staticmethod
     def generate_address_from_passphrase(passphrase):
-        private_key = str(hashlib.sha256(
-            passphrase.encode('utf-8')).hexdigest())
+        private_key = hashlib.sha256(passphrase.encode('utf-8')).hexdigest()
         address =  BrainWallet.generate_address_from_private_key(private_key)
         return private_key, address
 
     @staticmethod
     def generate_address_from_private_key(private_key):
         public_key = BrainWallet.__private_to_public(private_key)
-        address = BrainWallet.__public_to_address(public_key)
-        return address
+        return BrainWallet.__public_to_address(public_key)
 
     @staticmethod
     def __private_to_public(private_key):
@@ -255,8 +239,7 @@ class BrainWallet:
         key_bytes = key.to_string()
         key_hex = codecs.encode(key_bytes, 'hex')
         bitcoin_byte = b'04'
-        public_key = bitcoin_byte + key_hex
-        return public_key
+        return bitcoin_byte + key_hex
 
     @staticmethod
     def __public_to_address(public_key):
@@ -278,8 +261,7 @@ class BrainWallet:
         sha256_2_hex = codecs.encode(sha256_2_nbdec_digest, 'hex')
         checksum = sha256_2_hex[:8]
         address_hex = (network_bitcoin_public_key + checksum).decode('utf-8')
-        wallet = BrainWallet.base58(address_hex)
-        return wallet
+        return BrainWallet.base58(address_hex)
 
     @staticmethod
     def base58(address_hex):
@@ -293,23 +275,21 @@ class BrainWallet:
             b58_string = digit_char + b58_string
             address_int //= 58
         ones = leading_zeros // 2
-        for one in range(ones):
-            b58_string = '1' + b58_string
+        for _ in range(ones):
+            b58_string = f'1{b58_string}'
         return b58_string
         
 def create_valid_mnemonics(strength):
 
     rbytes = os.urandom(strength // 8)
     h = hashlib.sha256(rbytes).hexdigest()
-    
+
     b = ( bin(int.from_bytes(rbytes, byteorder="big"))[2:].zfill(len(rbytes) * 8) \
          + bin(int(h, 16))[2:].zfill(256)[: len(rbytes) * 8 // 32] )
-    
-    result = []
-    for i in range(len(b) // 11):
-        idx = int(b[i * 11 : (i + 1) * 11], 2)
-        result.append(wordlist[idx])
 
+    result = [
+        wordlist[int(b[i * 11 : (i + 1) * 11], 2)] for i in range(len(b) // 11)
+    ]
     return " ".join(result)
 # WORD Wallet
 order	= 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
@@ -319,8 +299,9 @@ with open('files/english.txt') as f:
 
 def mnem_to_seed(words):
     salt = 'mnemonic'
-    seed = hashlib.pbkdf2_hmac("sha512",words.encode("utf-8"), salt.encode("utf-8"), 2048)
-    return seed
+    return hashlib.pbkdf2_hmac(
+        "sha512", words.encode("utf-8"), salt.encode("utf-8"), 2048
+    )
 
 
 def bip39seed_to_bip32masternode(seed):
@@ -330,7 +311,7 @@ def bip39seed_to_bip32masternode(seed):
 
 def parse_derivation_path(str_derivation_path="m/44'/0'/0'/0/0"):
     path = []
-    if str_derivation_path[0:2] != 'm/':
+    if str_derivation_path[:2] != 'm/':
         raise ValueError("Can't recognize derivation path. It should look like \"m/44'/0'/0'/0\".")
     for i in str_derivation_path.lstrip('m/').split('/'):
         if "'" in i:
@@ -341,7 +322,7 @@ def parse_derivation_path(str_derivation_path="m/44'/0'/0'/0/0"):
 
 def parse_derivation_path2(str_derivation_path="m/49'/0'/0'/0/0"):      
     path = []
-    if str_derivation_path[0:2] != 'm/':
+    if str_derivation_path[:2] != 'm/':
         raise ValueError("Can't recognize derivation path. It should look like \"m/49'/0'/0'/0\".")
     for i in str_derivation_path.lstrip('m/').split('/'):
         if "'" in i:
@@ -435,17 +416,17 @@ def rwonline(self, mnem):
         p2sh = ice.privatekey_to_address(1, True, (int.from_bytes(pvk2, "big")))
         bech32 = ice.privatekey_to_address(2, True, (int.from_bytes(pvk3, "big")))
         #ethaddr = ice.privatekey_to_ETH_address(int.from_bytes(pvk4, "big"))
-        response = requests.get("https://blockstream.info/api/address/" + str(caddr))
+        response = requests.get(f"https://blockstream.info/api/address/{str(caddr)}")
         balance = float(response.json()['chain_stats']['funded_txo_sum'])
         totalSent = float(response.json()['chain_stats']['spent_txo_sum'])
         txs = response.json()['chain_stats']['funded_txo_count']
-        
-        response2 = requests.get("https://blockstream.info/api/address/" + str(p2sh))
+
+        response2 = requests.get(f"https://blockstream.info/api/address/{str(p2sh)}")
         balance2 = float(response2.json()['chain_stats']['funded_txo_sum'])
         totalSent2 = float(response2.json()['chain_stats']['spent_txo_sum'])
         txs2 = response2.json()['chain_stats']['funded_txo_count']
-        
-        response3 = requests.get("https://blockstream.info/api/address/" + str(bech32))
+
+        response3 = requests.get(f"https://blockstream.info/api/address/{str(bech32)}")
         balance3 = float(response3.json()['chain_stats']['funded_txo_sum'])
         totalSent3 = float(response3.json()['chain_stats']['spent_txo_sum'])
         txs3 = response3.json()['chain_stats']['funded_txo_count']
@@ -543,8 +524,7 @@ def brute_btc(self, dec):
     p2sh = ice.privatekey_to_address(1, True, dec)
     bech32 = ice.privatekey_to_address(2, True, dec)
     ethaddr = ice.privatekey_to_ETH_address(dec)
-    length = len(bin(dec))
-    length -=2
+    length = len(bin(dec)) - 2
     if caddr in bloom_filterbtc:
         self.bfr.config(text = f' WINNER WINNER Check found.txt \n Instance: Bruteforce \n DEC Key: {dec} Bits {length} \n HEX Key: {HEX} \nBTC Address Compressed: {caddr} \nWIF Compressed: {wifc}')
         self.found+=1
@@ -589,7 +569,7 @@ def brute_btc(self, dec):
         self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nETH Address : {ethaddr}")
         self.popwinner()
         send_email(self.WINTEXT)
-    scantext = f'''
+    return f'''
             *** DEC Key ***
  {dec}
         Bits {length}
@@ -604,14 +584,12 @@ def brute_btc(self, dec):
  ETH Address : {ethaddr}
 {lines}'''
 
-    return scantext
-
 def get_page(self, page):
     #max = 904625697166532776746648320380374280100293470930272690489102837043110636675
     num = page
 
     startPrivKey = (page - 1) * 128 + 1
-    for i in range(0, 128):
+    for _ in range(0, 128):
         dec = int(startPrivKey)
         starting_key_hex = hex(startPrivKey)[2:].zfill(64)
         if startPrivKey == 115792089237316195423570985008687907852837564279074904382605163141518161494336:
@@ -621,8 +599,7 @@ def get_page(self, page):
         p2sh = ice.privatekey_to_address(1, True, dec)
         bech32 = ice.privatekey_to_address(2, True, dec)
         ethaddr = ice.privatekey_to_ETH_address(dec)
-        length = len(bin(dec))
-        length -=2
+        length = len(bin(dec)) - 2
         if caddr in bloom_filterbtc:
             output = f'''\n
   : Private Key Page : {num}
@@ -705,7 +682,7 @@ def get_page(self, page):
             self.WINTEXT = output
             self.popwinner()
             send_email(self.WINTEXT)
-            
+
         if ethaddr[2:] in bloom_filtereth:
             output = f'''\n
 
@@ -727,7 +704,7 @@ def get_page(self, page):
             self.popwinner()
             send_email(self.WINTEXT)
         startPrivKey += 1
-    scantext = f'''
+    return f'''
   : Private Key Page : 
   {num}
   : Private Key DEC :
@@ -742,12 +719,11 @@ def get_page(self, page):
  BTC Address bech32: {bech32}
  ETH Address : {ethaddr}
 {lines}'''
-    return scantext
 
 def rbonline(self, passphrase):
     wallet = BrainWallet()
     private_key, caddr = wallet.generate_address_from_passphrase(passphrase)
-    response = requests.get("https://blockstream.info/api/address/" + str(caddr))
+    response = requests.get(f"https://blockstream.info/api/address/{str(caddr)}")
     balance = float(response.json()['chain_stats']['funded_txo_sum'])
     totalSent = float(response.json()['chain_stats']['spent_txo_sum'])
     txs = response.json()['chain_stats']['funded_txo_count']

@@ -4,6 +4,7 @@
 @author: iceland
 """
 
+
 import platform
 import os
 import sys
@@ -21,16 +22,16 @@ if platform.system().lower().startswith('win'):
         pathdll = os.path.realpath(dllfile)
         ice = ctypes.CDLL(pathdll)
     else:
-        print('File {} not found'.format(dllfile))
-    
+        print(f'File {dllfile} not found')
+
 elif platform.system().lower().startswith('lin'):
     dllfile = 'ice_secp256k1.so'
     if os.path.isfile(dllfile) == True:
         pathdll = os.path.realpath(dllfile)
         ice = ctypes.CDLL(pathdll)
     else:
-        print('File {} not found'.format(dllfile))
-    
+        print(f'File {dllfile} not found')
+
 else:
     print('[-] Unsupported Platform currently for ctypes dll method. Only [Windows and Linux] is working')
     sys.exit()
@@ -45,7 +46,7 @@ COIN_AXE  =	4
 COIN_BC   = 5
 COIN_BCH  = 6
 COIN_BSD  =	7
-COIN_BTDX = 8 
+COIN_BTDX = 8
 COIN_BTG  =	9
 COIN_BTX  =	10
 COIN_CHA  =	11
@@ -372,14 +373,14 @@ def b58py(data):
     B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
     if data[0] == 0:
-        return "1" + b58py(data[1:])
+        return f"1{b58py(data[1:])}"
 
-    x = sum([v * (256 ** i) for i, v in enumerate(data[::-1])])
+    x = sum(v * (256 ** i) for i, v in enumerate(data[::-1]))
     ret = ""
     while x > 0:
         ret = B58[x % 58] + ret
         x = x // 58
-        
+
     return ret
 #==============================================================================
 def b58_encode(inp_bytes):
@@ -417,23 +418,22 @@ def btc_wif_to_pvk_hex(wif):
     return pvk
 #==============================================================================
 def btc_wif_to_pvk_int(wif):
-    pvk = ''
     pvk_hex = btc_wif_to_pvk_hex(wif)
-    if pvk_hex != '': pvk = int(pvk_hex, 16)
-    return pvk
+    return int(pvk_hex, 16) if pvk_hex != '' else ''
 #==============================================================================
 def btc_pvk_to_wif(pvk, is_compressed=True):
     ''' Input Privatekey can in any 1 of these [Integer] [Hex] [Bytes] form'''
     inp = ''
     suff = '01' if is_compressed == True else ''
-    if type(pvk) in [int, str]: inp = bytes.fromhex('80' + fl(pvk) + suff)
+    if type(pvk) in [int, str]:
+        inp = bytes.fromhex(f'80{fl(pvk)}{suff}')
     elif type(pvk) == bytes: inp = b'\x80' + fl(pvk) + bytes.fromhex(suff)
     else: print("[Error] Input Privatekey format [Integer] [Hex] [Bytes] allowed only")
-    if inp != '':
-        res = get_sha256(inp)
-        res2 = get_sha256(res)
-        return b58_encode(inp + res2[:4])
-    else: return inp
+    if inp == '':
+        return inp
+    res = get_sha256(inp)
+    res2 = get_sha256(res)
+    return b58_encode(inp + res2[:4])
 #==============================================================================
 def checksum(inp):
     ''' Input string output double sha256 checksum 4 bytes'''
@@ -571,7 +571,7 @@ def pubkey_to_ETH_address(pubkey_bytes):
     res = ice.pubkeyxy_to_ETH_address(xy)
     addr = (ctypes.cast(res, ctypes.c_char_p).value).decode('utf8')
     ice.free_memory(res)
-    return '0x'+addr
+    return f'0x{addr}'
 #==============================================================================
 def _pubkey_to_ETH_address_bytes(xy):
     res = (b'\x00') * 20
@@ -590,7 +590,7 @@ def privatekey_to_ETH_address(pvk_int):
     res = ice.privatekey_to_ETH_address(pass_int_value)
     addr = (ctypes.cast(res, ctypes.c_char_p).value).decode('utf8')
     ice.free_memory(res)
-    return '0x'+addr
+    return f'0x{addr}'
 #==============================================================================
 def _privatekey_to_ETH_address_bytes(pass_int_value):
     res = (b'\x00') * 20
@@ -638,13 +638,17 @@ def bloom_check_add_mcpu(bigbuff, num_items, sz, check_add, bloom_bits, bloom_ha
 def to_cpub(pub_hex):
     P = pub_hex
     if len(pub_hex) > 70:
-        P = '02' + pub_hex[2:66] if int(pub_hex[66:],16)%2 == 0 else '03' + pub_hex[2:66]
+        P = (
+            f'02{pub_hex[2:66]}'
+            if int(pub_hex[66:], 16) % 2 == 0
+            else f'03{pub_hex[2:66]}'
+        )
     return P
 #==============================================================================
 def point_to_cpub(pubkey_bytes):
     P = pubkey_bytes.hex()
     if len(P) > 70:
-        P = '02' + P[2:66] if int(P[66:],16)%2 == 0 else '03' + P[2:66]
+        P = f'02{P[2:66]}' if int(P[66:],16)%2 == 0 else f'03{P[2:66]}'
     return P
 #==============================================================================
 def pub2upub(pub_hex):
@@ -654,7 +658,7 @@ def pub2upub(pub_hex):
         y = get_x_to_y(x, int(pub_hex[:2],16)%2 == 0).hex()
     else:
         y = pub_hex[66:].zfill(64)
-    return bytes.fromhex('04'+ x + y)
+    return bytes.fromhex(f'04{x}{y}')
 #==============================================================================
 def bloom_para(_items, _fp = 0.000001):
     _bits = math.ceil((_items * math.log(_fp)) / math.log(1 / pow(2, math.log(2))))
@@ -666,8 +670,7 @@ def Fill_in_bloom(inp_list, _fp = 0.000001):
     _bits, _hashes = bloom_para(len(inp_list), _fp)
     _bf = (b'\x00') * (_bits//8)
     for line in inp_list:
-        if type(line) != bytes: tt = str(line).encode("utf-8")
-        else: tt = line
+        tt = str(line).encode("utf-8") if type(line) != bytes else line
         res = ice.bloom_check_add(tt, len(tt), 1, _bits, _hashes, _bf)  # 1 = Add
     del res
     return _bits, _hashes, _bf
@@ -682,16 +685,12 @@ def read_bloom_file(bloom_file_name):
         return pickle.load(f)
 #==============================================================================
 def check_in_bloom(this_line, _bits, _hashes, _bf):
-    if type(this_line) != bytes: tt = str(this_line).encode("utf-8")
-    else: tt = this_line
-    if ice.bloom_check_add(tt, len(tt), 0, _bits, _hashes, _bf) > 0: return True
-    else: return False
+    tt = str(this_line).encode("utf-8") if type(this_line) != bytes else this_line
+    return ice.bloom_check_add(tt, len(tt), 0, _bits, _hashes, _bf) > 0
 #==============================================================================
 def prepare_bin_file_work(in_file, out_file, lower = False):
-    use0x = False
     inp_list = [line.split()[0].lower() if lower else line.split()[0] for line in open(in_file,'r')]
-    if inp_list[0][:2] == '0x': use0x = True
-    
+    use0x = inp_list[0][:2] == '0x'
     with open(out_file, 'wb') as f:
         if use0x:
             inp_list = [line[2:] for line in inp_list]
@@ -704,13 +703,12 @@ def prepare_bin_file(in_file, out_file, overwrite = False, lower = False):
     if os.path.isfile(out_file) == False:
         prepare_bin_file_work(in_file, out_file, lower)
 
+    elif overwrite:
+        print(f'[+] File {out_file} already exist. Overwriting it...')
+        prepare_bin_file_work(in_file, out_file)
+
     else:
-        if not overwrite:
-            print(f'[+] File {out_file} already exist. It will be used as it is...')
-            
-        else:
-            print(f'[+] File {out_file} already exist. Overwriting it...')
-            prepare_bin_file_work(in_file, out_file)
+        print(f'[+] File {out_file} already exist. It will be used as it is...')
 #==============================================================================
 def Load_data_to_memory(input_bin_file, verbose = False):
     '''input_bin_file is sorted h160 data of 20 bytes each element. 
@@ -722,5 +720,4 @@ def check_collision(h160):
     ''' h160 is the 20 byte hash to check for collision in data, already loaded in RAM.
     Use the function Load_data_to_memory before calling this check'''
     
-    found = ice.check_collision(h160)
-    return found
+    return ice.check_collision(h160)

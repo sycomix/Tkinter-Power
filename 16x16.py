@@ -65,13 +65,13 @@ class App:
 
     def cpu_met(self):
         self.cpu_use = psutil.cpu_percent()
-        self.cpu_label.config(text='Total CPU {} %'.format(self.cpu_use))
+        self.cpu_label.config(text=f'Total CPU {self.cpu_use} %')
         self.cpu_label.after(1000,self.cpu_met)
         self.ram_use = psutil.virtual_memory()[2]
-        self.ram_label.config(text='RAM Used {} %'.format(self.ram_use))
+        self.ram_label.config(text=f'RAM Used {self.ram_use} %')
         ram_free = psutil.virtual_memory().available * 100 / psutil.virtual_memory().total
         self.ram_free = str(ram_free)[:4]
-        self.ram_free_label.config(text='RAM Free {} %'.format(self.ram_free))
+        self.ram_free_label.config(text=f'RAM Free {self.ram_free} %')
 
     def init_tk(self):
         self.BH16x16 = Tk()
@@ -264,7 +264,7 @@ class App:
             self.BH16x16.after(self.tick_delay, self.tick)
         
     def init_grid(self):
-        self.grid = [[0 for x in range(self.cols)] for y in range(self.rows)]
+        self.grid = [[0 for _ in range(self.cols)] for _ in range(self.rows)]
 
     def start(self):
         self.init_grid()
@@ -273,9 +273,9 @@ class App:
         self.BH16x16.mainloop()
         
     def canvas_click(self, e):
-        cl = int(e.x // self.size)
-        rw = int(e.y // self.size)
         if self.is_active is False:
+            cl = int(e.x // self.size)
+            rw = int(e.y // self.size)
             if self.grid[rw][cl]:
                 self.grid[rw][cl] = 0
                 color = self.off_cell_color
@@ -334,10 +334,7 @@ class App:
         for rw in range(self.rows):
             for cl in range(self.cols):
                 seed_chance = random.randint(1, 100)
-                if seed_chance <= self.seed_ratio:
-                    self.grid[rw][cl] = 1
-                else:
-                    self.grid[rw][cl] = 0
+                self.grid[rw][cl] = 1 if seed_chance <= self.seed_ratio else 0
         self.update_canvas()
         MIZ.btc_hunter(self)
         self.btn_start_stop.config(state=NORMAL)
@@ -394,10 +391,7 @@ class App:
         for rw in range(self.rows):
             for cl in range(self.cols):
                 seed_chance = random.randint(1, 100)
-                if seed_chance <= self.seed_ratio:
-                    self.grid[rw][cl] = 1
-                else:
-                    self.grid[rw][cl] = 0
+                self.grid[rw][cl] = 1 if seed_chance <= self.seed_ratio else 0
         self.update_canvas()
         self.in_tick = False
         self.tick_count += 1
